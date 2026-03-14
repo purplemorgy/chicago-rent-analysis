@@ -36,6 +36,9 @@ def load_rent_data(data_path):
         .query("month.str.contains('-')")
     )
 
+    # Remove months where Zillow has no rent value
+    rent_long = rent_long.dropna(subset=["rent_price"])
+
     rent_long["month"] = pd.to_datetime(rent_long["month"], errors="coerce")
     rent_long = rent_long.dropna(subset=["month"])
 
@@ -46,14 +49,9 @@ def load_rent_data(data_path):
     rent_long = rent_long[rent_long["ZIP CODE"].str.match(r"^60[6-8]", na=False)]
 
     return rent_long
-# Map license descriptions into business-type groups using exact values
+
+# Group license descriptions by business type
 def categorize_business_group(description):
-    """Map license descriptions into business-type groups using exact values."""
-    if not isinstance(description, str):
-        return "Other"
-
-    d = description.strip()
-
     nightlife = {
         "Caterer's Liquor License",
         "Caterer's Registration (Liquor)",
@@ -89,13 +87,13 @@ def categorize_business_group(description):
         "Retail Food - Seasonal Lakefront Food Establishment",
     }
 
-    if d in nightlife:
+    if description in nightlife:
         return "Nightlife"
-    if d in retail:
+    if description in retail:
         return "Retail"
-    if d in lifestyle:
+    if description in lifestyle:
         return "Lifestyle services"
-    if d in food_hospitality:
+    if description in food_hospitality:
         return "Food and hospitality"
 
     return "Other"
@@ -174,22 +172,18 @@ def load_business_data(data_path):
 
 # Combine rent and business openings into a single monthly time series
 def build_combined_dataset(rent_long, business_monthly):
-    # Create a set of (ZIP CODE, month) keys
-    keys = (
-        pd.concat(
-            [rent_long[['ZIP CODE', 'month']], business_monthly[['ZIP CODE', 'month']]],
-            ignore_index=True,
-        )
-        .drop_duplicates()
-    )
 
+    # Start with rent data so only months with rent exist
     combined = (
-        keys
-        .merge(rent_long, on=['ZIP CODE', 'month'], how='left')
-        .merge(business_monthly, on=['ZIP CODE', 'month'], how='left')
+        rent_long
+        .merge(business_monthly, on=["ZIP CODE", "month"], how="left")
     )
 
-    combined = combined.sort_values(['ZIP CODE', 'month']).reset_index(drop=True)
+    # Business openings should be 0 if none occurred
+    business_cols = [c for c in combined.columns if c.startswith("openings_") or c == "business_openings"]
+    combined[business_cols] = combined[business_cols].fillna(0)
+
+    combined = combined.sort_values(["ZIP CODE", "month"]).reset_index(drop=True)
 
     return combined
 
@@ -201,30 +195,23 @@ def main():
 
     combined_df = build_combined_dataset(rent_long, business_monthly)
 
-    # Only keep ZIP codes that actually have rent data (drop ZIPs present only in business filings).
-    rent_zips = set(rent_long["ZIP CODE"].unique())
-    combined_df = combined_df[combined_df["ZIP CODE"].isin(rent_zips)]
+    combined_df = build_combined_dataset(rent_long, business_monthly)
 
-    # Find the timespan where every ZIP has data for both rent and recorded openings.
-    valid = combined_df[combined_df["rent_price"].notna() & combined_df["business_openings"].notna()]
-    zip_ranges = (
-        valid.groupby("ZIP CODE")["month"].agg(["min", "max"]).reset_index()
-    )
-    common_start = zip_ranges["min"].max()
-    common_end = zip_ranges["max"].min()
+    # Count number of rent observations per ZIP
+    zip_counts = combined_df.groupby("ZIP CODE")["rent_price"].count()
 
-    combined_df = combined_df[combined_df["month"].between(common_start, common_end)]
+    # Keep ZIPs with at least 24 months of data
+    valid_zips = zip_counts[zip_counts >= 24].index
 
-    # Compute month-over-month rent growth per ZIP code
+    combined_df = combined_df[combined_df["ZIP CODE"].isin(valid_zips)]
+
+    # Compute monthly rent growth per ZIP code
     combined_df = combined_df.sort_values(["ZIP CODE", "month"])
     combined_df["rent_growth"] = combined_df.groupby("ZIP CODE")["rent_price"].pct_change()
 
     # Save cleaned dataset in DATA folder.
     out_path = DATA_PATH / "cleaned_chicago_dataset.csv"
     combined_df.to_csv(out_path, index=False)
-
-
-    print("Time span:", common_start.date(), "->", common_end.date())
 
 
 if __name__ == "__main__":
