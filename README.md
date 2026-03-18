@@ -66,11 +66,11 @@ download from https://git-lfs.com/
 ```bash
 sudo apt install git-lfs
 ```
-**Linux: initializing Git LFS**
+**Initializing Git LFS**
 ```bash
 git lfs install
 ```
-**Linux: Download Dataset files**
+**Download Dataset files**
 ```bash
 git lfs pull
 ```
