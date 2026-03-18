@@ -47,21 +47,31 @@ cd chicago-rent-analysis
 ```
 
 ---
-### Step 1.5: Install Git LFS (Required for data files)
+### Step 1.5: Install Git LFS (Required for Data Files)
 
-**mac**
+This project uses Git Large File Storage (LFS) to manage large `.csv` datasets.  
+Without Git LFS, the data files will not download correctly.
+
+#### Install Git LFS
+
+**Mac (Homebrew):**
 ```bash
 brew install git-lfs
 ```
+
 **windows**
 download from https://git-lfs.com/
 
-**Mac/Linux**
+**Linux**
 ```bash
 sudo apt install git-lfs
-
+```
+initializing Git LFS 
+```bash
 git lfs install
-
+```
+Download Dataset files
+```bash
 git lfs pull
 ```
 
