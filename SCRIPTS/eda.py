@@ -252,12 +252,13 @@ def main():
         plot_rent_data_coverage(df, output_path)
 
     if args.zip is not None:
-        if isinstance(args.zip, int):
-            plot_zip(args.zip, df, output_path)
-        else:
+        if args.zip is True:
             zip_codes = df["zip code"].dropna().unique().astype(int)
             for z in sorted(zip_codes):
                 plot_zip(z, df, output_path)
+        else:
+            plot_zip(args.zip, df, output_path)
+
 
 
 if __name__ == "__main__":
