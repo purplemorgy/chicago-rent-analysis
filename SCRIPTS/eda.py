@@ -20,11 +20,7 @@ Plot distribution of business openings:
 
 Scatter plot of business openings vs rent growth:
     python SCRIPTS/eda.py --scatter
-
 """
-
-# Imports
-# -------
 
 import argparse
 from pathlib import Path
@@ -35,10 +31,8 @@ from matplotlib.ticker import StrMethodFormatter
 import pandas as pd
 
 
-# Plot rent and business openings for a single ZIP code
 def plot_zip(zip_code, df, output_dir):
-
-    sub = df[df["ZIP CODE"] == int(zip_code)]
+    sub = df[df["zip code"] == int(zip_code)]
     sub = sub.sort_values("month")
 
     plt.style.use("default")
@@ -61,16 +55,12 @@ def plot_zip(zip_code, df, output_dir):
     ax1.set_xlabel("Month")
     ax1.set_ylabel("Rent Price ($)", color="red")
     ax2.set_ylabel("Business Openings", color="blue")
-
     ax1.tick_params(axis="y", labelcolor="red")
-
     ax1.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
-
     ax1.xaxis.set_major_locator(mdates.MonthLocator(interval=4))
     ax1.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
 
     fig.autofmt_xdate(rotation=25)
-
     ax1.grid(True, color="black", linestyle="--", alpha=0.2)
 
     title = f"Rent and Business Openings per month in ZIP Code {zip_code}"
@@ -93,32 +83,29 @@ def plot_zip(zip_code, df, output_dir):
 
     out_path = output_dir / f"rent_and_business_monthly_{zip_code}.png"
     fig.savefig(out_path, dpi=150)
-
     plt.close(fig)
 
     print(f"Saved plot: {zip_code}")
 
 
-# Plot rent data availability across ZIP codes and months
 def plot_rent_data_coverage(df, output_dir):
-
     coverage = df.copy()
     coverage["has_rent"] = coverage["rent_price"].notna().astype(int)
 
     pivot = coverage.pivot_table(
-        index="ZIP CODE",
+        index="zip code",
         columns="month",
         values="has_rent",
         fill_value=0
     )
 
-    first_obs = coverage.groupby("ZIP CODE")["month"].min()
+    first_obs = coverage.groupby("zip code")["month"].min()
     pivot = pivot.loc[first_obs.sort_values().index]
 
     months = pivot.columns
     zips = pivot.index
 
-    plt.figure(figsize=(16,8))
+    plt.figure(figsize=(16, 8))
 
     plt.imshow(
         pivot.values,
@@ -138,67 +125,53 @@ def plot_rent_data_coverage(df, output_dir):
     plt.ylabel("ZIP Code")
     plt.title("Rent Data Availability by ZIP Code")
 
-
     out_path = output_dir / "rent_data_availability.png"
     plt.savefig(out_path, dpi=150)
-
     plt.close()
 
+    print("Saved plot: rent_data_availability")
 
-# Histogram of monthly rent growth
+
 def plot_rent_growth_distribution(df, output_dir):
-
     data = df["rent_growth"].dropna()
 
-    plt.figure(figsize=(10,6))
-
+    plt.figure(figsize=(10, 6))
     plt.hist(data, bins=40)
 
     plt.xlabel("Monthly Rent Growth")
     plt.ylabel("Frequency")
-
     plt.title("Distribution of Monthly Rent Growth")
-
     plt.grid(alpha=0.3)
 
     out_path = output_dir / "rent_growth_distribution.png"
     plt.savefig(out_path, dpi=150)
-
     plt.close()
 
     print("Saved plot: rent_growth_distribution")
 
 
-# Histogram of business openings
 def plot_business_distribution(df, output_dir):
-
     data = df["business_openings"].dropna()
 
-    plt.figure(figsize=(10,6))
-
+    plt.figure(figsize=(10, 6))
     plt.hist(data, bins=40)
 
     plt.xlabel("Business Openings per Month")
     plt.ylabel("Frequency")
-
     plt.title("Distribution of Business Openings")
-
     plt.grid(alpha=0.3)
 
     out_path = output_dir / "business_openings_distribution.png"
     plt.savefig(out_path, dpi=150)
-
     plt.close()
 
     print("Saved plot: business_openings_distribution")
 
-# Scatter plot: business openings vs rent growth
-def plot_business_vs_rent_growth(df, output_dir):
 
+def plot_business_vs_rent_growth(df, output_dir):
     sub = df.dropna(subset=["business_openings", "rent_growth"])
 
-    plt.figure(figsize=(10,6))
-
+    plt.figure(figsize=(10, 6))
     plt.scatter(
         sub["business_openings"],
         sub["rent_growth"],
@@ -207,24 +180,17 @@ def plot_business_vs_rent_growth(df, output_dir):
 
     plt.xlabel("Business Openings")
     plt.ylabel("Rent Growth")
-
     plt.title("Business Openings vs Rent Growth")
-
     plt.grid(alpha=0.3)
 
     out_path = output_dir / "business_vs_rent_growth.png"
     plt.savefig(out_path, dpi=150)
-
     plt.close()
 
     print("Saved plot: business_vs_rent_growth")
 
 
-# Main
-# --------
-
 def main():
-
     parser = argparse.ArgumentParser(
         description="EDA plots for rent vs business openings."
     )
@@ -270,7 +236,7 @@ def main():
     output_path.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(data_path)
-
+    df.columns = df.columns.str.strip().str.lower()
     df["month"] = pd.to_datetime(df["month"], errors="coerce")
 
     if args.rent_growth_dist:
@@ -286,13 +252,10 @@ def main():
         plot_rent_data_coverage(df, output_path)
 
     if args.zip is not None:
-
         if isinstance(args.zip, int):
             plot_zip(args.zip, df, output_path)
-
         else:
-            zip_codes = df["ZIP CODE"].dropna().unique().astype(int)
-
+            zip_codes = df["zip code"].dropna().unique().astype(int)
             for z in sorted(zip_codes):
                 plot_zip(z, df, output_path)
 
