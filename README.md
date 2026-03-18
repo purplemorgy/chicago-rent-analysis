@@ -21,7 +21,7 @@ It should also run on Windows or Linux with the same Python setup.
 Project Folder Structure:
 
 ```
-move_review_analysis/
+chicago-rent-analysis/
 │
 ├── DATA/
 │   ├── Business_Licenses_Chicago.csv
