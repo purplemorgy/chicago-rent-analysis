@@ -43,10 +43,27 @@ move_review_analysis/
 
 ```bash
 git clone https://github.com/purplemorgy/chicago-rent-analysis
-cd move_review_analysis
+cd chicago-rent-analysis
 ```
 
 ---
+### Step 1.5: Install Git LFS (Required for data files)
+
+**mac**
+```bash
+brew install git-lfs
+```
+**windows**
+download from https://git-lfs.com/
+
+**Mac/Linux**
+```bash
+sudo apt install git-lfs
+
+git lfs install
+
+git lfs pull
+```
 
 ### Step 2: Create a Virtual Environment
 
@@ -84,8 +101,14 @@ pip install pandas matplotlib numpy
 
 ### Step 4: Run Data Cleaning and Exploratory Data Analysis Script
 
-Run this script to generate a cleaned time series dataset:
+First, generate the cleaned dataset:
 
 ```bash
-python SCRIPTS/eda.py
+python SCRIPTS/data_cleaning.py
+```
+
+Generate EDA plots:
+
+```bash
+python SCRIPTS/eda.py --coverage --rent-growth-dist --business-dist --scatter
 ```
