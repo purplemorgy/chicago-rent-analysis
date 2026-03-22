@@ -30,9 +30,16 @@ chicago-rent-analysis/
 │
 ├── SCRIPTS/
 │   ├── data_cleaning.py
-│   └── eda.py
+│   ├── eda.py
+│   ├── panel_regression.py
+│   └── run_pipeline.sh
 │
 ├── OUTPUT/
+│   ├── business_openings_distribution.png
+│   ├── business_vs_rent_growth.png
+│   ├── rent_and_business_monthly_XXXXX.png
+│   ├── rent_data_availability.png
+│   └── rent_growth_distribution.png
 │
 ├── README.md
 └── LICENSE
@@ -47,7 +54,7 @@ cd chicago-rent-analysis
 ```
 
 ---
-### Step 1.5: Install Git LFS (Required for Data Files)
+### Step 2: Install Git LFS (Required for Data Files)
 
 This project uses Git Large File Storage (LFS) to manage large `.csv` datasets.  
 Without Git LFS, the data files will not download correctly.
@@ -75,50 +82,20 @@ git lfs install
 git lfs pull
 ```
 
-### Step 2: Create a Virtual Environment
+### Step 3: Run the pipeline
 
-Create a virtual environment:
+This project includes a pipeline script that automatically:
 
-```bash
-python3 -m venv venv
-```
+- Creates a virtual environment
 
-Activate the virtual environment:
+- Installs required Python packages
 
-**Mac/Linux**
-```bash
-source venv/bin/activate
-```
+- Runs data cleaning
 
-**Windows**
-```bash
-venv\Scripts\activate
-```
+- Generates EDA plots
 
----
-
-### Step 3: Install Packages
-
-**Base Packages (Required)**
-
-These packages are required to run data preprocessing and exploratory data analysis:
+- Runs panel regression models and prints interpretations
 
 ```bash
-pip install pandas matplotlib numpy
-```
-
----
-
-### Step 4: Run Data Cleaning and Exploratory Data Analysis Script
-
-First, generate the cleaned dataset:
-
-```bash
-python SCRIPTS/data_cleaning.py
-```
-
-Generate EDA plots:
-
-```bash
-python SCRIPTS/eda.py --coverage --rent-growth-dist --business-dist --scatter
+bash run_pipeline.sh
 ```
