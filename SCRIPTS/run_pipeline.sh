@@ -46,8 +46,14 @@ python3 -m venv venv
 
 echo ""
 echo "[3/6] Activating virtual environment..."
-source venv/bin/activate
-
+if [ -f "venv/Scripts/activate" ]; then
+    source venv/Scripts/activate
+elif [ -f "venv/bin/activate" ]; then
+    source venv/bin/activate
+else
+    echo "Virtual environment activation script not found."
+    exit 1
+fi
 echo ""
 echo "[4/6] Installing required packages..."
 pip install --upgrade pip
