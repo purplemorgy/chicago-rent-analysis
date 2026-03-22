@@ -10,7 +10,7 @@ Models:
 4. Cumulative model using a 3-month rolling sum of business openings (use with --cumulative)
 
 The script can print full regression tables with no further flags, or it can print 
-summaries of what each model tracks and what the evidence suggests.
+summaries of what each model tracks and what the evidence suggests (use with --all --interpret).
 """
 
 
